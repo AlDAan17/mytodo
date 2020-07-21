@@ -12,7 +12,7 @@ export default  class App extends React.Component {
     maxId = 100;
 
     state = {
-        done: false,
+        // done: false,
         // classNames: '',
         filter: 'all',
         term: '',
@@ -21,7 +21,7 @@ export default  class App extends React.Component {
             this.createTodoItem('Editing task'),
             this.createTodoItem('Active task'),
             // { nameOfClass: this.classNames, label: 'Completed task', id: 1},
-            // { nameOfClass: 'editing', label: 'Editing task', id: 2},
+            { nameOfClass: 'editing', label: 'Editing task',editMode: true, id: 2},
             // { nameOfClass: this.classNames, label: 'Active task', id: 3}
         ]
     };
@@ -30,26 +30,36 @@ export default  class App extends React.Component {
          return{
              label,
              done:false,
+             editMode: false,
              id: this.maxId++
          }
      }
 
+     toggleProperty(arr, id, propName){
+         const idx = arr.findIndex((el) => el.id === id);
+         const oldItem = arr[idx];
+         const newItem = {...oldItem, [propName]: !oldItem[propName]};
+
+         return [
+             ...arr.slice(0, idx),
+             newItem,
+             ...arr.slice(idx + 1)
+         ];
+     }
+
     onToggleDone = (id) =>{
         this.setState(({ todoData }) =>{
-            const idx = todoData.findIndex((el) => el.id === id);
-
-            const oldItem = todoData[idx];
-            const newItem = {...oldItem, done: !oldItem.done};
-
-            const newArray = [
-                ...todoData.slice(0, idx),
-                newItem,
-                ...todoData.slice(idx + 1)
-            ];
-
             return{
-                todoData: newArray
-            };
+                todoData: this.toggleProperty(todoData, id, 'done')
+            }
+        });
+    };
+
+    onChangeEditMode = (id) =>{
+        this.setState(({ todoData}) => {
+            return{
+                todoData: this.toggleProperty(todoData, id, 'editMode')
+            }
         });
     };
 
@@ -118,6 +128,8 @@ export default  class App extends React.Component {
         });
     };
 
+
+
     render() {
         let { todoData, term, filter } = this.state;
         // console.log(classNames);
@@ -131,7 +143,9 @@ export default  class App extends React.Component {
                 <NewTaskForm onItemAdded={this.addItem}/>
                 <TaskList todos={visibleItems}
                 onDeleted = {this.deleteItem}
-                onToggleDone={this.onToggleDone}/>
+                onToggleDone={this.onToggleDone}
+                // todoData={todoData}
+                onChangeEditMode={this.onChangeEditMode}/>
                 <Footer done={todoCount}
                     filter = {filter}
                     onFilterChange={this.onFilterChange}

@@ -21,7 +21,7 @@ export default  class App extends React.Component {
             this.createTodoItem('Editing task'),
             this.createTodoItem('Active task'),
             // { nameOfClass: this.classNames, label: 'Completed task', id: 1},
-            { nameOfClass: 'editing', label: 'Editing task',editMode: true, id: 2},
+            // { nameOfClass: 'editing', label: 'Editing task',editMode: false, id: 2},
             // { nameOfClass: this.classNames, label: 'Active task', id: 3}
         ]
     };
@@ -31,6 +31,9 @@ export default  class App extends React.Component {
              label,
              done:false,
              editMode: false,
+             filter: 'all',
+             nameOfClass: 'active',
+             time: new Date(),
              id: this.maxId++
          }
      }
@@ -46,6 +49,14 @@ export default  class App extends React.Component {
              ...arr.slice(idx + 1)
          ];
      }
+
+     onChangeInput = (e, id) =>{
+         this.setState(({ todoData }) => {
+             const idx = todoData.findIndex((el) => el.id === id);
+             const oldItem = todoData[idx];
+             const newItem = {...oldItem, label: e.target.value};
+         });
+     };
 
     onToggleDone = (id) =>{
         this.setState(({ todoData }) =>{
@@ -128,11 +139,25 @@ export default  class App extends React.Component {
         });
     };
 
-
+    onEditing = (id, obj, elementDOM) => {
+        this.setState(
+            ({ todoData }) => {
+                const index = todoData.findIndex((el) => el.id === id);
+                const oldItem = todoData[index];
+                const newItem = { ...oldItem, ...obj };
+                const newArray = [...todoData.slice(0, index), newItem, ...todoData.slice(index + 1)];
+                return {
+                    todoData: newArray,
+                };
+            },
+            () => {
+                if (elementDOM) elementDOM.focus();
+            }
+        );
+    };
 
     render() {
         let { todoData, term, filter } = this.state;
-        // console.log(classNames);
         const visibleItems = this.filter(
             this.search(todoData, term), filter);
         const doneCount = todoData.filter( el => el.done).length;
@@ -142,10 +167,12 @@ export default  class App extends React.Component {
             <section className="todoapp">
                 <NewTaskForm onItemAdded={this.addItem}/>
                 <TaskList todos={visibleItems}
-                onDeleted = {this.deleteItem}
-                onToggleDone={this.onToggleDone}
-                // todoData={todoData}
-                onChangeEditMode={this.onChangeEditMode}/>
+                    onDeleted = {this.deleteItem}
+                    onToggleDone={this.onToggleDone}
+                    todoData={todoData}
+                    onChangeEditMode={this.onChangeEditMode}
+                    onSubmitFormTask={this.onSubmitFormTask}
+                    edit={this.onEditing}/>
                 <Footer done={todoCount}
                     filter = {filter}
                     onFilterChange={this.onFilterChange}

@@ -1,37 +1,41 @@
-import React from "react";
-
+import React from 'react';
 import './new-task-form.css';
 
-export default class NewTaskForm extends React.Component{
+export default class NewTaskForm extends React.Component {
+  state = {
+    label: '',
+  };
 
-    state = {
-        label: ''
-    };
+  onLabelChange = (event) => {
+    this.setState({
+      label: event.target.value,
+    });
+  };
 
-    onLabelChange = (e) =>{
-        this.setState({
-            label:e.target.value
-        });
-    };
+  onSubmit = (event) => {
+    event.preventDefault();
+    // eslint-disable-next-line react/prop-types,react/destructuring-assignment
+    this.props.onItemAdded(this.state.label);
+    this.setState({
+      label: '',
+    });
+  };
 
-    onSubmit = (e) =>{
-        e.preventDefault();
-        this.props.onItemAdded(this.state.label);
-        this.setState({
-            label: ''
-        });
-    };
-
-    render() {
-        return (
-            <header className="header">
-                <h1>todos</h1>
-                <form onSubmit={this.onSubmit}>
-                    <input className="new-todo" placeholder="What needs to be done?" autoFocus
-                           onChange={this.onLabelChange}
-                           value={this.state.label}/>
-                </form>
-            </header>
-        );
-    }
-};
+  render() {
+    const {label} = this.state;
+    return (
+      <header className="header">
+        <h1>todos</h1>
+        <form onSubmit={this.onSubmit}>
+          <input
+            className="new-todo"
+            placeholder="What needs to be done?"
+            // autoFocus
+            onChange={this.onLabelChange}
+            value={label}
+          />
+        </form>
+      </header>
+    );
+  }
+}

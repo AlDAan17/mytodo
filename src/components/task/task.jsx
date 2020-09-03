@@ -2,6 +2,7 @@ import React from 'react';
 import './task.css';
 import formatDistanceToNow from 'date-fns/formatDistanceToNow';
 import PropTypes from 'prop-types';
+import Timer from "../../Services/timer";
 
 export default class Task extends React.Component {
   editInput = React.createRef();
@@ -14,6 +15,7 @@ export default class Task extends React.Component {
   values = {
     prevNameOfClass: '',
     flag: true,
+    timerId: null,
   };
 
   componentDidMount() {
@@ -31,8 +33,11 @@ export default class Task extends React.Component {
     );
   }
 
+  componentWillUnmount(){
+    clearTimeout(this.values.timerId)
+  }
+
   editFn = () => {
-    // eslint-disable-next-line react/prop-types
     const { label, id, edit, nameOfClass } = this.props;
     this.setState({
       currentLabel: label,
@@ -42,10 +47,9 @@ export default class Task extends React.Component {
   };
 
   editFnBlur = () => {
-    // eslint-disable-next-line react/prop-types
     const { id, label, edit } = this.props;
-    // eslint-disable-next-line prefer-const
-    let { flag, prevNameOfClass } = this.values;
+    let { flag } = this.values;
+    const {prevNameOfClass} = this.values;
     document.onkeydown = (evt) => {
       let isEscape = false;
       if ('key' in evt) {
@@ -71,28 +75,23 @@ export default class Task extends React.Component {
   onSubmit = (event) => {
     event.preventDefault();
     const { currentLabel } = this.state;
-    // eslint-disable-next-line react/prop-types
     const { id, edit } = this.props;
-    let { flag } = this.values;
     const { prevNameOfClass } = this.values;
 
     if (!currentLabel.trim()) return;
-    // eslint-disable-next-line no-unused-vars
-    flag = false;
     edit(id, { nameOfClass: prevNameOfClass, label: currentLabel.trim() });
   };
 
   changeTime() {
-    // eslint-disable-next-line react/prop-types
     const { time } = this.props;
     return formatDistanceToNow(time, { includeSeconds: true, addSuffix: true });
   }
 
   render() {
-    // eslint-disable-next-line react/prop-types
-    const { label, onDeleted, onToggleDone, done, id, timerTime } = this.props;
+    const { label, onDeleted, onToggleDone, done, id, alreadyTime, timerOn, timerOff } = this.props;
     let { nameOfClass } = this.props;
     const { currentLabel, timeAgo } = this.state;
+    const alreadyTimeFormat = new Timer(...alreadyTime).recountTime().transformToText().result();
     if (done) {
       nameOfClass += ' completed';
     }
@@ -104,7 +103,11 @@ export default class Task extends React.Component {
             <input className="toggle" type="checkbox" checked={done === true} onChange={() => onToggleDone(id)} />
             <label>
               <span className="description">{label}</span>
-              <span>{timerTime}</span>
+              <div className="created">
+                <button type="button" aria-label="play" className="icon-play" onClick={() => timerOn(id)}/>
+                 <button type="button" aria-label="pause" className="icon-pause" onClick={() => timerOff(id)}/>
+                {alreadyTimeFormat}
+              </div>
               <span className="created">{timeAgo}</span>
             </label>
             <button type="button" className="icon icon-edit" aria-label="Save" onClick={this.editFn} />
@@ -133,8 +136,9 @@ Task.propTypes = {
   done: PropTypes.bool.isRequired,
   id: PropTypes.number.isRequired,
   nameOfClass: PropTypes.string.isRequired,
-  // eslint-disable-next-line react/no-unused-prop-types,react/require-default-props
-  currentLabel: PropTypes.string,
-  // eslint-disable-next-line react/no-unused-prop-types,react/require-default-props
-  timeAgo: PropTypes.string,
+  time: PropTypes.instanceOf(Date).isRequired,
+  edit:PropTypes.func.isRequired,
+  timerOn:PropTypes.func.isRequired,
+  timerOff:PropTypes.func.isRequired,
+  alreadyTime:PropTypes.arrayOf(Object).isRequired,
 };

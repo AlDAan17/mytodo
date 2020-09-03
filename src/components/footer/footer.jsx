@@ -18,12 +18,8 @@ const Footer = ({ done, filter, onFilterChange, onDeleteCompleted }) => {
 export default Footer;
 
 Footer.propTypes = {
-    // eslint-disable-next-line react/require-default-props
-  filter: PropTypes.string,
-    // eslint-disable-next-line react/require-default-props
-  done: PropTypes.number,
-    // eslint-disable-next-line react/require-default-props
-  onFilterChange: PropTypes.func,
-    // eslint-disable-next-line react/require-default-props
-  onDeleteCompleted: PropTypes.func,
+  filter: PropTypes.string.isRequired,
+  done: PropTypes.number.isRequired,
+  onFilterChange: PropTypes.func.isRequired,
+  onDeleteCompleted: PropTypes.func.isRequired,
 };

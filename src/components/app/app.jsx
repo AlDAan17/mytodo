@@ -7,59 +7,30 @@ import Footer from '../footer';
 export default class App extends React.Component {
   maxId = 100;
 
-  timersTime = {};
+  timers = {};
 
   state = {
     filter: 'all',
     term: '',
-    todoData: [
-      this.createTodoItem('Completed task'),
-      this.createTodoItem('Editing task'),
-      this.createTodoItem('Active task'),
-      // { nameOfClass: this.classNames, label: 'Completed task', id: 1},
-      // { nameOfClass: 'editing', label: 'Editing task',editMode: false, id: 2},
-      // { nameOfClass: this.classNames, label: 'Active task', id: 3}
-    ],
-    timerTime:{
-      sec:0,
-      min:0
-    },
-    interv: null,
+    todoData: [],
   };
 
-  startTimer = () =>{
-    this.runTimer();
-    this.setState({interv: setInterval(this.runTimer, 1000)});
-  }
+  onTimerOn = (id) => {
+    if (this.timers[id]) return;
+        this.timers[id] = setInterval(() => {
+          // eslint-disable-next-line no-shadow
+          const {todoData} = this.state;
+          const i = todoData.findIndex((el) => el.id === id);
+          if(todoData[i].done) return;
+          const [min, sec] = todoData[i].alreadyTime;
+          this.onEditing(id, {alreadyTime: [min, sec + 1]});
+        }, 1000);
+  };
 
-  stopTimer = () =>{
-    const {interv} = this.state;
-    clearInterval(interv);
-  }
-
-  runTimerTest = (id) =>{
-    this.timersTime[id] = setInterval(() =>{
-      const {todoData} = this.state;
-      const idx = todoData.findIndex(el => el.id === id);
-      const [min, sec] = todoData[idx].alreadyTime;
-      this.onEditing(id, {alreadyTime: [min, sec + 1]})
-    }, 1000);
-  }
-
-  runTimer = () =>{
-    const {timerTime} = this.state;
-    let updatedS = timerTime.sec;
-    let updatedM = timerTime.min;
-
-    if(updatedS === 59){
-      // eslint-disable-next-line no-plusplus
-      updatedM++;
-      updatedS = -1;
-    }
-    // eslint-disable-next-line no-plusplus
-    updatedS++;
-    return this.setState( ({timerTime: {sec: updatedS, min: updatedM}}))
-  }
+  onTimerOff = (id) => {
+    clearInterval(this.timers[id]);
+    delete this.timers[id];
+  };
 
   onEditing = (id, obj, elementDOM) => {
     this.setState(
@@ -81,7 +52,8 @@ export default class App extends React.Component {
   onDeleteCompleted = () => {
     this.setState(({ todoData }) => {
       const newArray = todoData.filter((item) => {
-        const { done } = item;
+        const { done, id  } = item;
+        if(done) this.onTimerOff(id);
         return done === false;
       });
       return {
@@ -95,7 +67,9 @@ export default class App extends React.Component {
   };
 
   onToggleDone = (id) => {
+
     this.setState(({ todoData }) => {
+      if(!todoData.done) this.onTimerOff(id)
       return {
         todoData: this.toggleProperty(todoData, id, 'done'),
       };
@@ -112,6 +86,7 @@ export default class App extends React.Component {
 
   deleteItem = (id) => {
     this.setState(({ todoData }) => {
+      this.onTimerOff(id);
       const idx = todoData.findIndex((el) => el.id === id);
       const newArray = [...todoData.slice(0, idx), ...todoData.slice(idx + 1)];
       return {
@@ -120,8 +95,8 @@ export default class App extends React.Component {
     });
   };
 
-  addItem = (text) => {
-    const newItem = this.createTodoItem(text);
+  addItem = (text, alreadyTime) => {
+    const newItem = this.createTodoItem(text, alreadyTime);
 
     this.setState(({ todoData }) => {
       const newArr = [...todoData, newItem];
@@ -130,8 +105,6 @@ export default class App extends React.Component {
       };
     });
   };
-
-
 
   search(items, term) {
     return items.filter((item) => {
@@ -161,6 +134,8 @@ export default class App extends React.Component {
   }
 
   createTodoItem(label, alreadyTime) {
+    const id = this.maxId;
+    this.maxId += 1;
     return {
       label,
       done: false,
@@ -168,26 +143,16 @@ export default class App extends React.Component {
       filter: 'all',
       nameOfClass: 'active',
       time: new Date(),
-      // eslint-disable-next-line no-plusplus
-      id: this.maxId++,
-      // eslint-disable-next-line no-undef
+      id,
       alreadyTime,
     };
   }
 
   render() {
-    const { todoData, term, filter, timerTime, interv } = this.state;
+    const { todoData, term, filter } = this.state;
     const visibleItems = this.filter(this.search(todoData, term), filter);
     const doneCount = todoData.filter((el) => el.done).length;
     const todoCount = todoData.length - doneCount;
-    const showTime = (
-        <span className="created">
-          <button type="button" aria-label="play" className="icon-play" onClick={this.startTimer}/>
-          <button type="button" aria-label="pause" className="icon-pause" onClick={this.stopTimer}/>
-          <span>{(timerTime.min >= 10) ? timerTime.min : `0${timerTime.min}`}&nbsp;:&nbsp;</span>
-          <span>{(timerTime.sec >= 10) ? timerTime.sec : `0${timerTime.sec}`}&nbsp;</span>
-        </span>
-    );
     return (
       <section className="todoapp">
         <NewTaskForm onItemAdded={this.addItem} />
@@ -199,8 +164,8 @@ export default class App extends React.Component {
           onChangeEditMode={this.onChangeEditMode}
           onSubmitFormTask={this.onSubmitFormTask}
           edit={this.onEditing}
-          timerTime={showTime}
-          interv={interv}
+          timerOn={this.onTimerOn}
+          timerOff={this.onTimerOff}
         />
         <Footer
           done={todoCount}

@@ -27,15 +27,6 @@ export default class TaskFilter extends React.Component {
     return (
       <ul className="filters">
         {buttons}
-        {/* <li> */}
-        {/*    <button className="selected">All</button> */}
-        {/* </li> */}
-        {/* <li> */}
-        {/*    <button>Active</button> */}
-        {/* </li> */}
-        {/* <li> */}
-        {/*    <button>Completed</button> */}
-        {/* </li> */}
       </ul>
     );
   }
@@ -44,6 +35,4 @@ export default class TaskFilter extends React.Component {
 TaskFilter.propTypes = {
   filter: PropTypes.string.isRequired,
   onFilterChange: PropTypes.func.isRequired,
-  // eslint-disable-next-line react/no-unused-prop-types,react/require-default-props
-  label: PropTypes.oneOf(['active', 'completed', 'editing']),
 };

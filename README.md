@@ -1,5 +1,5 @@
-##React ToDo App 
-####How it looks: https://mytodo-pi.vercel.app
+## React ToDo App 
+#### How it looks: https://mytodo-pi.vercel.app
 
 ## Available Scripts
 
